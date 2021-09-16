@@ -86,7 +86,7 @@ menubar.add_cascade(label="Help", menu=helpmenu)
 helpmenu.add_command(label="About", command=lambda: teu.about())
 helpmenu.add_separator()
 helpmenu.add_command(label="Version",
-                     command=lambda: messagebox.showinfo(title="Version", message=f"App Version: 1.0.7"
+                     command=lambda: messagebox.showinfo(title="Version", message=f"App Version: 1.0.9"
                                                                                   f"\nTk Version: {TkVersion}"
                                                                                   f"\nTcl Version: {TclVersion}"
                                                                                   ))
