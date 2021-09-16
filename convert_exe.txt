@@ -1,3 +1,5 @@
 In cmnd promp/terminal window
 
 $ pyinstaller -F -w -i app_icon.ico texteditor.py
+
+or use auto-py-to-exe
