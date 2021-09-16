@@ -208,6 +208,7 @@ class TextEditorUtils:
         self.filemenu.entryconfig(5,state="disabled")
         self.fw = Toplevel()
         self.fw.attributes('-topmost',True)
+        self.fw.resizable(False,False)
         self.fw.title("Editor Settings")
         width , height = 300, 130
         x = int((self.window.winfo_screenwidth() / 2) - (width / 2))
