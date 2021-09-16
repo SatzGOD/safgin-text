@@ -174,13 +174,13 @@ class TextEditorUtils:
                     if f.read() == self.text.get(1.0, "end"):
                         self.window.title(f"{self.path} - {app_name}")
                     else:
-                        self.window.title(f"{self.path}* - {app_name}")
+                        self.window.title(f"*{self.path} - {app_name}")
                         self.statusL_text.set("")
             else:
                 if self.text.get(1.0, "end") > "   ":
-                    self.window.title(f"Untitled* - {app_name}")
-                else:
                     self.window.title(f"Untitled - {app_name}")
+                else:
+                    self.window.title(f"*Untitled - {app_name}")
             sleep(0.1)
 
     def on_closing(self):
