@@ -126,7 +126,7 @@ helpmenu.add_command(label="Version",
                                                                                   f"\nTcl Version: {TclVersion}"
                                                                                   ))
 helpmenu.add_separator()
-helpmenu.add_command(label="Repository", command=lambda: webbrowser.open("https://github.com/SatzGOD/TextEditor"))
+helpmenu.add_command(label="Repository", command=lambda: webbrowser.open("https://github.com/SatzGOD/texteditor"))
 helpmenu.add_separator()
 helpmenu.add_command(label="Report a problem ⚠",
                      command=lambda: webbrowser.open("https://www.youtube.com/watch?v=xvFZjo5PgG0"))
