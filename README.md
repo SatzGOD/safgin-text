@@ -5,4 +5,3 @@
 
 This is Beta of new feature branch
 new feature is bold,italic,annd more...
-checking out
