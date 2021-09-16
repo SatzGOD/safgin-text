@@ -113,7 +113,7 @@ editmenu.add_command(label="Delete All", command=teu.delete_all, accelerator="Sh
 
 # Theme Menu
 menubar.add_cascade(label="Themes", menu=thememenu)
-thememenu.add_command(label="Dark", command=lambda: teu.set_state(1),activebackground="black",activeforeground="white")
+thememenu.add_command(label="Dark", command=lambda: teu.set_state(1),activebackground="#242424",activeforeground="white")
 thememenu.add_command(label="Light", command=lambda: teu.set_state(0),activebackground="white",activeforeground="black")
 
 # Help Menu
