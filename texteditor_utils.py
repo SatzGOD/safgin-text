@@ -38,8 +38,8 @@ def startup_loader():
 
 # window geometry setter
 def window_geometry(window):
-    window_width = window_cords['w'] if window_cords['w'] != None else 500
-    window_height = window_cords['h'] if window_cords['h'] != None else 600
+    window_width = window_cords['w'] if window_cords['w'] != None else 720
+    window_height = window_cords['h'] if window_cords['h'] != None else 480
     x = window_cords['x'] if window_cords['w'] != None else int((window.winfo_screenwidth() / 2) - (window_width / 2))
     y = window_cords['y'] if window_cords['w'] != None else int((window.winfo_screenheight() / 2) - (window_height / 2))
     window.geometry("{}x{}+{}+{}".format(window_width, window_height, x, y))
@@ -368,6 +368,10 @@ class TextEditorUtils:
     def set_state(self, newstate):
         self.state = newstate
         self.themeSwitcher()
+        try:
+            self.ts_fw()
+        except:
+            pass
 
     def themeSwitcher(self):
         if self.state == 0:
