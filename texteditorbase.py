@@ -558,5 +558,3 @@ class TextEditorBase(TextEditor):
             self.l3.config(bg=darkgrey, fg=white)
 
 
-
-            
