@@ -1,12 +1,15 @@
 from tkinter import colorchooser, filedialog, messagebox, font
 import tkinter as tk
-from os.path import exists, split
+from os.path import exists, split, splitext
 from win32print import GetDefaultPrinter
 from win32api import ShellExecute
 from pickle import dump, load
 from time import sleep
 import webbrowser
 from threading import Thread
+from idlelib.colorizer import ColorDelegator, make_pat
+from idlelib.percolator import Percolator
+import re
 
 app_name = "TextEditor"
 class TextEditor:
@@ -47,14 +50,13 @@ class TextEditorBase(TextEditor):
         self.text = tk.Text(self.bodyframe, font=(self.style, self.size))
         self.__startupopen()
         self.scrollbary = tk.Scrollbar(self.bodyframe, command=self.text.yview)
-        self.scrollbarx = tk.Scrollbar(self.bodyframe, command=self.text.xview, orient="horizontal")
+        # self.scrollbarx = tk.Scrollbar(self.bodyframe, command=self.text.xview, orient="horizontal")
         self.window.grid_rowconfigure(0, weight=1)
         self.window.grid_columnconfigure(0, weight=1)
-        self.scrollbarx.pack(side="bottom", fill="x")
+        #self.scrollbarx.pack(side="bottom", fill="x")
         self.scrollbary.pack(side="right", fill="y")
         self.text.pack(expand=True, fill="both")
-        self.text.config(yscrollcommand=self.scrollbary.set, undo=True, xscrollcommand=self.scrollbarx.set,
-                    wrap="none")
+        self.text.config(yscrollcommand=self.scrollbary.set, undo=True,wrap="word",tabs=40) # xscrollcommand=self.scrollbarx.set
         self.bodyframe.grid(row=0,column=0,sticky="n"+"w"+"e"+"s")
         # bottom frame
         self.bottomframe = tk.Frame(self.window)
@@ -100,17 +102,15 @@ class TextEditorBase(TextEditor):
 
         # Theme Menu
         self.menubar.add_cascade(label="Themes", menu=self.thememenu)
-        self.thememenu.add_command(label="Dark", command=lambda: self.__set_state(1), activebackground="#242424",
-                                   activeforeground="white")
-        self.thememenu.add_command(label="Light", command=lambda: self.__set_state(0), activebackground="white",
-                                   activeforeground="black")
+        self.thememenu.add_command(label="Light", command=lambda: self.__set_theme(0))
+        self.thememenu.add_command(label="Dark", command=lambda: self.__set_theme(1))
+        self.thememenu.add_command(label="Terminal", command=lambda: self.__set_theme(2))
 
         # Help Menu
         self.menubar.add_cascade(label="Help", menu=self.helpmenu)
         self.helpmenu.add_command(label="About", command=lambda: self.__about())
-        self.helpmenu.add_separator()
         self.helpmenu.add_command(label="Version",
-                                  command=lambda: messagebox.showinfo(title="Version", message=f"App Version: 2.0.1"
+                                  command=lambda: messagebox.showinfo(title="Version", message=f"App Version: 2.2.3"
                                                                                                f"\nTk Version: {tk.TkVersion}"
                                                                                                f"\nTcl Version: {tk.TclVersion}"
                                                                       ))
@@ -127,10 +127,7 @@ class TextEditorBase(TextEditor):
         Thread(target=self.__textfileactivity, daemon=True).start()
 
         # to set theme on startup
-        if self.state != None:
-            self.__themeSwitcher()
-        else:
-            self.__set_state(0)
+        self.__themeSwitcher()
         self.window.update()  # to update idle tasks if any...
 
         # custom quit protocol
@@ -143,7 +140,7 @@ class TextEditorBase(TextEditor):
             with open('data', 'rb') as f:
                 loadeddata = load(f)
                 self.path = loadeddata['path']
-                self.state = loadeddata['state']
+                self.theme = loadeddata['theme']
                 self.style = loadeddata['fontstyle']
                 self.size = loadeddata['fontsize']
                 self.window_cords['w'] = loadeddata['w']
@@ -154,19 +151,41 @@ class TextEditorBase(TextEditor):
             # File Path
             self.path = ""
             # for themes
-            self.state = None
+            self.theme = 0
             self.size = "15"
             self.style = "Consolas"
 
     def __dumpjson_and_destroy(self):
         data = {'x': self.window.winfo_x(), 'y': self.window.winfo_y(), 'w': self.window.winfo_width(),
                 'h': self.window.winfo_height(),
-                'path': self.path, 'state': self.state, 'fontstyle': self.font_style.get(),
+                'path': self.path, 'theme': self.theme, 'fontstyle': self.font_style.get(),
                 'fontsize': self.font_size.get()}
         with open('data', 'wb') as f:
             dump(data, f)
 
         self.window.destroy()
+
+    def __syntax_highlighter(self):
+        if self.path == "" or splitext(self.path)[-1] == '.txt':
+            try:
+                self.prec.close()
+            except:
+                pass
+        else:
+            # Syntax
+            self.cdg = ColorDelegator()
+            self.cdg.prog = re.compile(r'\b(?P<MYGROUP>tkinter)\b|' + make_pat(), re.S)
+            self.cdg.idprog = re.compile(r'\s+(\w+)', re.S)
+            self.cdg.tagdefs['MYGROUP'] = {'foreground': '#51CBEE'}
+            self.cdg.tagdefs['COMMENT'] = {'foreground': 'grey'}
+            self.cdg.tagdefs['KEYWORD'] = {'foreground': '#FD9622'}
+            self.cdg.tagdefs['BUILTIN'] = {'foreground': '#A47EEA'}
+            self.cdg.tagdefs['STRING'] = {'foreground': '#8DD12A'}
+            self.cdg.tagdefs['DEFINITION'] = {'foreground': '#EE0400'}
+            self.prec = Percolator(self.text)
+            self.prec.insertfilter(self.cdg)
+            # print("It's not a text file")
+
 
     def __on_closing(self):
         if exists(self.path):
@@ -263,6 +282,7 @@ class TextEditorBase(TextEditor):
         self.path = ""
         self.text.config(undo=True)
         self.statusL_text.set("")
+        self.__syntax_highlighter()
 
     def __fopen(self):
         self.text.config(undo=False)
@@ -275,7 +295,9 @@ class TextEditorBase(TextEditor):
                 self.text.insert(1.0, f.read()[:-1])
             self.window.title(f"{(split(opath)[1])} - {app_name}")
             self.path = opath
-            self.text.config(undo=False)
+            self.statusL_text.set(opath)
+            self.text.config(undo=True)
+            self.__syntax_highlighter()
         else:
             pass
 
@@ -284,8 +306,10 @@ class TextEditorBase(TextEditor):
             with open(self.path, 'rt') as f:
                 self.window.title(f"{(split(self.path)[1])} - {app_name}")
                 self.text.insert(1.0, f.read()[:-1])
+                self.__syntax_highlighter()
         else:
             self.window.title("Untitled - TextEditor")
+            self.__syntax_highlighter()
 
         # to save as a new file or save within an existing file
 
@@ -303,6 +327,7 @@ class TextEditorBase(TextEditor):
             self.window.title(f"{(split(spath.name)[1])} - {app_name}")
             self.path = spath.name
             self.statusL_text.set(f"{self.path} (Saved)")
+            self.__syntax_highlighter()
         else:
             pass
 
@@ -461,8 +486,8 @@ class TextEditorBase(TextEditor):
         self.filemenu.entryconfig(5, state="normal")
         self.fw.destroy()
 
-    def __set_state(self, newstate):
-        self.state = newstate
+    def __set_theme(self, newstate):
+        self.theme = newstate
         self.__themeSwitcher()
         try:
             self.__ts_esw()
@@ -470,56 +495,86 @@ class TextEditorBase(TextEditor):
             pass
 
     def __themeSwitcher(self):
-        if self.state == 0:
-            white = "#FFFFFF"
-            defsyswhite = "#F0F0F0"
+        if self.theme == 0:
+            white = "#FCFDFD"
+            defsyswhite = "#C7CCD1"
             black = "#000001"
             relief = "flat"
-            highlightgrey = "#b0b0b0"
+            highlightgrey = "#D9DDE0"
             font, size = "Consolas", "10"
             self.window.config(bg=defsyswhite)
             self.bottomframe.config(bg=defsyswhite)
-            self.text.config(fg=black, bg=white)
+            self.text.config(fg=black, bg=white, insertbackground=black)
 
             self.status_label.config(fg=black, bg=defsyswhite)
-            self.menubar.config(bg=white, fg=black, relief=relief, activebackground=highlightgrey,
-                                selectcolor=highlightgrey, font=(font, size))
-            self.filemenu.config(bg=white, fg=black, relief=relief, activebackground=highlightgrey,
-                                 selectcolor=highlightgrey, font=(font, size))
-            self.editmenu.config(bg=white, fg=black, relief=relief, activebackground=highlightgrey,
-                                 selectcolor=highlightgrey, font=(font, size))
-            self.thememenu.config(bg=white, fg=black, relief=relief, activebackground=highlightgrey,
-                                  selectcolor=highlightgrey, font=(font, size))
-            self.helpmenu.config(bg=white, fg=black, relief=relief, activebackground=highlightgrey,
-                                 selectcolor=highlightgrey, font=(font, size))
+            self.menubar.config(bg=defsyswhite, fg=black, relief=relief, activebackground=highlightgrey,
+                                selectcolor=highlightgrey, font=(font, size),
+                                   activeforeground=black)
+            self.filemenu.config(bg=defsyswhite, fg=black, relief=relief, activebackground=highlightgrey,
+                                 selectcolor=highlightgrey, font=(font, size),
+                                   activeforeground=black)
+            self.editmenu.config(bg=defsyswhite, fg=black, relief=relief, activebackground=highlightgrey,
+                                 selectcolor=highlightgrey, font=(font, size),
+                                   activeforeground=black)
+            self.thememenu.config(bg=defsyswhite, fg=black, relief=relief, activebackground=highlightgrey,
+                                  selectcolor=highlightgrey, font=(font, size),
+                                   activeforeground=black)
+            self.helpmenu.config(bg=defsyswhite, fg=black, relief=relief, activebackground=highlightgrey,
+                                 selectcolor=highlightgrey, font=(font, size),
+                                   activeforeground=black)
 
-        elif self.state == 1:
+
+        elif self.theme == 1:
             white = "white"
             textwhite = '#ebebeb'
-            darkgrey = "#242424"
-            lightgrey = "#414245"
+            sysdark = "#2E3238"
+            darkgrey = "#2B2B2B"
+            textbg = "#282923"
+            lightgrey = "#414141"
             relief = "flat"
             font, size = "Consolas", "10"
-            self.window.config(bg=darkgrey)
-            self.bottomframe.config(bg=darkgrey)
-            self.text.config(fg=textwhite, bg=lightgrey)
-            self.status_label.config(bg=darkgrey, fg=white)
-            self.menubar.config(bg=darkgrey, fg=white, relief=relief, activebackground=lightgrey,
+            self.window.config(bg=sysdark)
+            self.bottomframe.config(bg=sysdark)
+            self.text.config(fg=textwhite, bg=textbg, insertbackground=white)
+            self.status_label.config(bg=sysdark, fg=white)
+            self.menubar.config(bg=darkgrey, fg=white, relief=relief, activebackground=lightgrey,activeforeground=white,
                                 selectcolor=lightgrey, font=(font, size))
-            self.filemenu.config(bg=darkgrey, fg=white, relief=relief, activebackground=lightgrey,
+            self.filemenu.config(bg=darkgrey, fg=white, relief=relief, activebackground=lightgrey,activeforeground=white,
                                  selectcolor=lightgrey, font=(font, size))
-            self.editmenu.config(bg=darkgrey, fg=white, relief=relief, activebackground=lightgrey,
+            self.editmenu.config(bg=darkgrey, fg=white, relief=relief, activebackground=lightgrey,activeforeground=white,
                                  selectcolor=lightgrey, font=(font, size))
-            self.thememenu.config(bg=darkgrey, fg=white, relief=relief, activebackground=lightgrey,
+            self.thememenu.config(bg=darkgrey, fg=white, relief=relief, activebackground=lightgrey,activeforeground=white,
                                   selectcolor=lightgrey, font=(font, size))
-            self.helpmenu.config(bg=darkgrey, fg=white, relief=relief, activebackground=lightgrey,
+            self.helpmenu.config(bg=darkgrey, fg=white, relief=relief, activebackground=lightgrey,activeforeground=white,
                                  selectcolor=lightgrey, font=(font, size))
+        elif self.theme == 2:
+            white = "#FFFFFF"
+            yelow = "#BDBE00"
+            black = "#000000"
+            green = "#00BF00"
+            relief = "flat"
+            font, size = "Ubuntu Mono", "10"
+            self.window.config(bg=black)
+            self.bottomframe.config(bg=black)
+            self.text.config(fg=white, bg=black, insertbackground=white)
+            self.status_label.config(bg=black, fg=yelow)
+            self.menubar.config(bg=black, fg=white, relief=relief, activebackground=green,activeforeground=white,
+                                selectcolor=green, font=(font, size))
+            self.filemenu.config(bg=black, fg=white, relief=relief, activebackground=green,activeforeground=white,
+                                 selectcolor=green, font=(font, size))
+            self.editmenu.config(bg=black, fg=white, relief=relief, activebackground=green,activeforeground=white,
+                                 selectcolor=green, font=(font, size))
+            self.thememenu.config(bg=black, fg=white, relief=relief, activebackground=green,activeforeground=white,
+                                  selectcolor=green, font=(font, size))
+            self.helpmenu.config(bg=black, fg=white, relief=relief, activebackground=green,activeforeground=white,
+                                 selectcolor=green, font=(font, size))
+
     def __ts_esw(self):
-        if self.state == 0:
-            defsyswhite = "#F0F0F0"
+        if self.theme == 0:
+            defsyswhite = "#C7CCD1"
             black = "#000001"
             relief = "groove"
-            highlightgrey = "#b0b0b0"
+            highlightgrey = "#D9DDE0"
             self.stylebox.config(fg=black, bg=defsyswhite, activebackground=highlightgrey, activeforeground=black,
                                  relief=relief, highlightthickness=False)
             self.sizebox.config(fg=black, bg=defsyswhite, relief=relief, highlightthickness=3,
@@ -529,17 +584,17 @@ class TextEditorBase(TextEditor):
             self.bcolorbutton.config(fg=black, bg=defsyswhite, activebackground=highlightgrey, activeforeground=black,
                                      relief=relief)
             self.tripempbox.config(fg=black, bg=defsyswhite, activebackground=highlightgrey, activeforeground=black,
-                                   relief=relief)
+                                   relief=relief, highlightthickness=False)
             self.fw.config(bg=defsyswhite)
             self.frame.config(bg=defsyswhite)
             self.l1.config(bg=defsyswhite, fg=black)
             self.l2.config(bg=defsyswhite, fg=black)
             self.l3.config(bg=defsyswhite, fg=black)
-        elif self.state == 1:
+        elif self.theme == 1:
             white = "white"
-            darkgrey = "#242424"
-            lightdarkgrey = "#353535"
-            lightgrey = "#414245"
+            darkgrey = "#2B2B2B"
+            lightdarkgrey = "#2E3238"
+            lightgrey = "#414141"
             relief = "groove"
             self.stylebox.config(bg=lightdarkgrey, fg=white, activebackground=lightgrey, activeforeground=white,
                                  relief=relief, highlightthickness=False)
@@ -556,5 +611,26 @@ class TextEditorBase(TextEditor):
             self.l1.config(bg=darkgrey, fg=white)
             self.l2.config(bg=darkgrey, fg=white)
             self.l3.config(bg=darkgrey, fg=white)
+
+        elif self.theme == 2:
+            white = "#FFFFFF"
+            black = "#000000"
+            green = "#00BF00"
+            relief = "groove"
+            self.stylebox.config(bg=black, fg=white, activebackground=green, activeforeground=white,
+                                 relief=relief, highlightthickness=False)
+            self.sizebox.config(bg=black, fg=white, relief=relief, highlightthickness=3,
+                                highlightbackground=black)
+            self.fcolorbutton.config(bg=black, fg=white, activebackground=green, activeforeground=white,
+                                     relief=relief)
+            self.bcolorbutton.config(bg=black, fg=white, activebackground=green, activeforeground=white,
+                                     relief=relief)
+            self.tripempbox.config(bg=black, fg=white, activebackground=green, activeforeground=white,
+                                   relief=relief, highlightthickness=False)
+            self.fw.config(bg=black)
+            self.frame.config(bg=black)
+            self.l1.config(bg=black, fg=white)
+            self.l2.config(bg=black, fg=white)
+            self.l3.config(bg=black, fg=white)
 
 
