@@ -29,6 +29,7 @@ class TextEditor:
 class TextEditorBase(TextEditor):
     def __init__(self,window):
         self.window = window
+        self.__syntaxhighlight = False
 
     def texteditorbase(self,fst):
         self.__startup_loader()
@@ -108,12 +109,9 @@ class TextEditorBase(TextEditor):
 
         # Help Menu
         self.menubar.add_cascade(label="Help", menu=self.helpmenu)
-        self.helpmenu.add_command(label="About", command=lambda: self.__about())
-        self.helpmenu.add_command(label="Version",
-                                  command=lambda: messagebox.showinfo(title="Version", message=f"App Version: 2.2.3 "
-                                                                                               f"\nTk Version: {tk.TkVersion} "
-                                                                                               f"\nTcl Version: {tk.TclVersion} "
-                                                                      ))
+        self.helpmenu.add_command(label=f"About {app_name}", command=lambda: self.__about())
+        self.helpmenu.add_command(label="Version Info",
+                                  command=self.__version_info)
         self.helpmenu.add_separator()
         self.helpmenu.add_command(label="Repository",
                                   command=lambda: webbrowser.open("https://github.com/SatzGOD/texteditor"))
@@ -165,27 +163,32 @@ class TextEditorBase(TextEditor):
 
         self.window.destroy()
 
+
     def __syntax_highlighter(self):
         if self.path == "" or splitext(self.path)[-1] == '.txt':
             try:
                 self.prec.close()
+                self.__syntaxhighlight = False
+                print("closed")
             except:
                 pass
         else:
-            # Syntax
-            self.cdg = ColorDelegator()
-            self.cdg.prog = re.compile(r'\b(?P<MYGROUP>tkinter)\b|' + make_pat(), re.S)
-            self.cdg.idprog = re.compile(r'\s+(\w+)', re.S)
-            self.cdg.tagdefs['MYGROUP'] = {'foreground': '#51CBEE'}
-            self.cdg.tagdefs['COMMENT'] = {'foreground': 'grey'}
-            self.cdg.tagdefs['KEYWORD'] = {'foreground': '#FD9622'}
-            self.cdg.tagdefs['BUILTIN'] = {'foreground': '#A47EEA'}
-            self.cdg.tagdefs['STRING'] = {'foreground': '#8DD12A'}
-            self.cdg.tagdefs['DEFINITION'] = {'foreground': '#EE0400'}
-            self.prec = Percolator(self.text)
-            self.prec.insertfilter(self.cdg)
-            # print("It's not a text file")
-
+            if not self.__syntaxhighlight:
+                self.cdg = ColorDelegator()
+                self.cdg.prog = re.compile(r'\b(?P<MYGROUP>tkinter)\b|' + make_pat(), re.S)
+                self.cdg.idprog = re.compile(r'\s+(\w+)', re.S)
+                self.cdg.tagdefs['MYGROUP'] = {'foreground': ''}
+                self.cdg.tagdefs['COMMENT'] = {'foreground': 'grey'}
+                self.cdg.tagdefs['KEYWORD'] = {'foreground': '#FD9622'}
+                self.cdg.tagdefs['BUILTIN'] = {'foreground': '#A47EEA'}
+                self.cdg.tagdefs['STRING'] = {'foreground': '#8DD12A'}
+                self.cdg.tagdefs['DEFINITION'] = {'foreground': '#51CBEE'}
+                self.prec = Percolator(self.text)
+                self.prec.insertfilter(self.cdg)
+                self.__syntaxhighlight = True
+                print("highlighted")
+            else:
+                pass
 
     def __on_closing(self):
         if exists(self.path):
@@ -304,9 +307,10 @@ class TextEditorBase(TextEditor):
     def __startupopen(self):
         if exists(self.path):
             with open(self.path, 'rt') as f:
-                self.window.title(f"{(split(self.path)[1])} - {app_name}")
+                self.__delete_all()
                 self.text.insert(1.0, f.read()[:-1])
-                self.__syntax_highlighter()
+            self.window.title(f"{(split(self.path)[1])} - {app_name}")
+            self.__syntax_highlighter()
         else:
             self.window.title("Untitled - TextEditor")
             self.__syntax_highlighter()
@@ -443,9 +447,17 @@ class TextEditorBase(TextEditor):
             self.tripemp.set("None")
 
     def __about(self):
-        messagebox.showinfo("About TextEditor",
-                            "A Simple Text editor python application by Satz!\nSource Code at SatzGOD github or Click `Repository` in the Help Menu."
+        messagebox.showinfo(f"About {app_name}",
+                            "A python text editor application by Satz!\nSource Code at SatzGOD github or Click `Repository` in the Help Menu.\n"
                             "\ninstagram: @satz_._")
+    def __version_info(self):
+        messagebox.showinfo(title="Version Info", message=f"\nAbout This Version:-"
+                                                     f"\n{app_name} v2.2.4 "
+                                                     f"\nWhat's New?\n"
+                                                     f"New Auto Detect Syntax Highlight Feature and New Theme Terminal."
+                                                     f"\nMinor Changes:\n"
+                                                     f"Fixed Some bugs, upgraded existing themes Dark and Light."
+                            )
 
     def __es_window(self):
         self.tripemp_list = ["Bold", "Italics", "Underline"]
