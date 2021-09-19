@@ -169,7 +169,6 @@ class TextEditorBase(TextEditor):
             try:
                 self.prec.close()
                 self.__syntaxhighlight = False
-                print("closed")
             except:
                 pass
         else:
@@ -186,7 +185,6 @@ class TextEditorBase(TextEditor):
                 self.prec = Percolator(self.text)
                 self.prec.insertfilter(self.cdg)
                 self.__syntaxhighlight = True
-                print("highlighted")
             else:
                 pass
 
