@@ -110,9 +110,9 @@ class TextEditorBase(TextEditor):
         self.menubar.add_cascade(label="Help", menu=self.helpmenu)
         self.helpmenu.add_command(label="About", command=lambda: self.__about())
         self.helpmenu.add_command(label="Version",
-                                  command=lambda: messagebox.showinfo(title="Version", message=f"App Version: 2.2.3"
-                                                                                               f"\nTk Version: {tk.TkVersion}"
-                                                                                               f"\nTcl Version: {tk.TclVersion}"
+                                  command=lambda: messagebox.showinfo(title="Version", message=f"App Version: 2.2.3 "
+                                                                                               f"\nTk Version: {tk.TkVersion} "
+                                                                                               f"\nTcl Version: {tk.TclVersion} "
                                                                       ))
         self.helpmenu.add_separator()
         self.helpmenu.add_command(label="Repository",
