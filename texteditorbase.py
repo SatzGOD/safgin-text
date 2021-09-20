@@ -335,7 +335,7 @@ class TextEditorBase(SafGinText):
         # to save as a new file or save within an existing file
 
     def __fsave_as(self):
-        spath = filedialog.asksaveasfile(title="Where you want you to save your file?", defaultextension=".txt",
+        spath = filedialog.asksaveasfile(title="Save as File",defaultextension=".txt",
                                          filetypes=(
                                              ("text File", "*.txt"), ("HTML File", "*.html"),
                                              ("Python File", "*.py"),
