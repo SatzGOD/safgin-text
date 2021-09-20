@@ -10,19 +10,24 @@ Download the source code zip from [github](https://github.com/SatzGOD/texteditor
 
 Terminal:
 
-	In Terminal (cd) Change Path to the Folder.
+In Terminal (cd) Change Path to the Folder.
 
-	Then Use This Command to run.
+Then Use This Command to run.
 
 ```bash
 python safgintext.py
 ```
+or
+```bash
+python3 safgintext.py
+```
 
+#
 Direct:
-   
-	double tap `safgintext.py` To run!
 
+double tap `safgintext.py` To run!
 
+#
 Convert To exe:
 
 In Terminal
@@ -30,7 +35,7 @@ In Terminal
 pyinstaller -F -w -i sgtextedito_appicon.ico texteditor.py
 ```
 
-or use [auto-py-to-exe](https://github.com/brentvollebregt/auto-py-to-exe)
+or use [auto-py-to-exe](https://github.com/brentvollebregt/auto-py-to-exe).
 
 
 ## Contributing
@@ -38,4 +43,4 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 
 ## License
-[BSD 3-Clause "New" or "Revised License"](https://github.com/SatzGOD/texteditor/blob/master/LICENSE)
+[BSD 3-Clause "New" or "Revised" License](https://github.com/SatzGOD/texteditor/blob/master/LICENSE)
