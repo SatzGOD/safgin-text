@@ -120,10 +120,10 @@ class TextEditorBase(SafGinText):
                                   command=self.__version_info)
         self.helpmenu.add_separator()
         self.helpmenu.add_command(label="Repository",
-                                  command=lambda: webbrowser.open("https://github.com/SatzGOD/texteditor"))
+                                  command=lambda: webbrowser.open("https://github.com/SatzGOD/safgin-text"))
         self.helpmenu.add_separator()
         self.helpmenu.add_command(label="Report a problem ⚠",
-                                  command=lambda: webbrowser.open("https://www.youtube.com/watch?v=xvFZjo5PgG0"))
+                                  command=lambda: webbrowser.open("https://github.com/SatzGOD/safgin-text/issues/new"))
 
         self.__window_keybinds()
 
