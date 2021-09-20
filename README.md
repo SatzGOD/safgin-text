@@ -1,1 +1,41 @@
-# TextEditor 
+# SafGin Text 
+
+SafGin is a python GUI text editor application.
+
+## Installation
+
+Download the source code zip from [github](https://github.com/SatzGOD/texteditor) and extract and put it in any directory.
+
+## Usage
+
+Terminal:
+
+	In Terminal (cd) Change Path to the Folder.
+
+	Then Use This Command to run.
+
+```bash
+python safgintext.py
+```
+
+Direct:
+   
+	double tap `safgintext.py` To run!
+
+
+Convert To exe:
+
+In Terminal
+```bash
+pyinstaller -F -w -i sgtextedito_appicon.ico texteditor.py
+```
+
+or use [auto-py-to-exe](https://github.com/brentvollebregt/auto-py-to-exe)
+
+
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+
+## License
+[BSD 3-Clause "New" or "Revised License"](https://github.com/SatzGOD/texteditor/blob/master/LICENSE)
