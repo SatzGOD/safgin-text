@@ -1,3 +1,5 @@
+from PIL import Image
+from PIL import ImageTk
 from tkinter import colorchooser, filedialog, messagebox, font
 import tkinter as tk
 from os.path import exists, split, splitext
@@ -11,12 +13,12 @@ from idlelib.colorizer import ColorDelegator, make_pat
 from idlelib.percolator import Percolator
 import re
 
-app_name = "TextEditor"
-class TextEditor:
+app_name = "SafGin Text"
+class SafGinText:
     def start(self):
         window = tk.Tk()
         base = TextEditorBase(window)
-        base.texteditorbase(True)
+        base.texteditorbase()
         window.mainloop()
 
     # def _nw(self):
@@ -26,16 +28,19 @@ class TextEditor:
     #     win.mainloop()
 
 # Base Class
-class TextEditorBase(TextEditor):
+class TextEditorBase(SafGinText):
     def __init__(self,window):
         self.window = window
         self.__syntaxhighlight = False
 
-    def texteditorbase(self,fst):
+    def texteditorbase(self):
+
         self.__startup_loader()
-        if fst: self.window.iconphoto(True, tk.PhotoImage(file="media_file/iconphoto.png"))
-        else: pass
         self.__window_geometry()
+        self.window.iconbitmap("media_file/sgtexteditor_appicon.ico")
+        self.window.grid_rowconfigure(0, weight=1)
+        self.window.grid_columnconfigure(0, weight=1)
+
         # string vars
         self.font_style = tk.StringVar()
         self.font_style.set(self.style)
@@ -52,8 +57,6 @@ class TextEditorBase(TextEditor):
         self.__startupopen()
         self.scrollbary = tk.Scrollbar(self.bodyframe, command=self.text.yview)
         # self.scrollbarx = tk.Scrollbar(self.bodyframe, command=self.text.xview, orient="horizontal")
-        self.window.grid_rowconfigure(0, weight=1)
-        self.window.grid_columnconfigure(0, weight=1)
         #self.scrollbarx.pack(side="bottom", fill="x")
         self.scrollbary.pack(side="right", fill="y")
         self.text.pack(expand=True, fill="both")
@@ -63,8 +66,10 @@ class TextEditorBase(TextEditor):
         self.bottomframe = tk.Frame(self.window)
         self.status_label = tk.Label(self.bottomframe, textvariable=self.statusL_text)
 
+
         # creating main menu bar and menus
-        self.menubar = tk.Menu(self.window)
+        self.menubar = tk.Menu(self.window, background="blue",fg="white")
+        self.window.config(menu=self.menubar)
         self.window.config(menu=self.menubar)
         self.filemenu = tk.Menu(self.menubar, tearoff=0)
         self.editmenu = tk.Menu(self.menubar, tearoff=0)
@@ -73,7 +78,8 @@ class TextEditorBase(TextEditor):
 
         # configs
         self.bottomframe.grid(row=1,column=0,sticky="n"+"w"+"e"+"s")
-        self.status_label.pack(anchor="w")
+        self.status_label.pack(anchor="w",side="left")
+
 
         # File Menu
         self.menubar.add_cascade(label='File', menu=self.filemenu)
@@ -229,11 +235,11 @@ class TextEditorBase(TextEditor):
                     if f.read() == self.text.get(1.0, "end"):
                         self.window.title(f"{(split(self.path)[1])} - {app_name}")
                     else:
-                        self.window.title(f"{(split(self.path)[1])}* - {app_name}")
+                        self.window.title(f"*{(split(self.path)[1])} - {app_name}")
                         self.statusL_text.set(f"{self.path}")
             else:
                 if self.text.get(1.0, "end") > "   ":
-                    self.window.title(f"Untitled* - {app_name}")
+                    self.window.title(f"*Untitled - {app_name}")
                 else:
                     self.window.title(f"Untitled - {app_name}")
             sleep(0.1)  # for smooth experience
@@ -275,6 +281,19 @@ class TextEditorBase(TextEditor):
         # To Print
         self.window.bind("<Control-P>", lambda _: self.__print_file())  # ctr + P
         self.window.bind("<Control-p>", lambda _: self.__print_file())  # ctr + p
+
+        self.bottomframe.bind("<ButtonPress-1>",lambda _: self.window.attributes("-alpha", 0.4))
+        self.bottomframe.bind("<ButtonRelease-1>", lambda _: self.window.attributes("-alpha", 1.0))
+
+        self.__fullscreen = False
+        def fullscreen(_):
+            if not self.__fullscreen:
+                self.window.attributes('-fullscreen', True)
+                self.__fullscreen = True
+            else:
+                self.window.attributes('-fullscreen', False)
+                self.__fullscreen = False
+        self.window.bind("<F11>", fullscreen)
 
     def __new(self):
         self.text.config(undo=False)
@@ -450,21 +469,31 @@ class TextEditorBase(TextEditor):
                             "\ninstagram: @satz_._")
     def __version_info(self):
         messagebox.showinfo(title="Version Info", message=f"\nAbout This Version:-"
-                                                     f"\n{app_name} v2.2.4 "
+                                                     f"\n{app_name} v2.3.4 "
                                                      f"\nWhat's New?\n"
-                                                     f"New Auto Detect Syntax Highlight Feature and New Theme Terminal."
+                                                     f"Click StatusBar to Transparent background and Added new F11 to full screen feature."
                                                      f"\nMinor Changes:\n"
-                                                     f"Fixed Some bugs, upgraded existing themes Dark and Light."
+                                                     f"Upgraded Editor Settings Window and Fixed Some bugs and glitches."
                             )
 
     def __es_window(self):
+        img = Image.open('media_file\sgtexteditor_iconphoto.png')
+        img = img.resize((18, 18), Image.ANTIALIAS)
+        img = ImageTk.PhotoImage(img)
         self.tripemp_list = ["Bold", "Italics", "Underline"]
         self.filemenu.entryconfig(5, state="disabled")
         self.fw = tk.Toplevel()
+        self.fw.overrideredirect(1)
+        self.fw.attributes("-alpha", 0.75)
+        self.fw.grid_rowconfigure(0,weight=1)
+        self.fw.grid_columnconfigure(0, weight=1)
+        self.eswtitle = Titlebar(self.fw,img,maximize=False,minimze=False,onhold=False,closef=self.__fwonclosing)
+        self.eswtitle.grid(row=0,column=0,sticky="we")
+        self.eswtitle.set_title("Editor Settings")
         self.fw.attributes('-topmost', True)
         self.fw.resizable(False, False)
         self.fw.title("Editor Settings")
-        width, height = 300, 130
+        width, height = 300, 160
         x = int((self.window.winfo_screenwidth() / 2) - (width / 2))
         y = int((self.window.winfo_screenheight() / 2) - (height / 2))
         self.fw.geometry(f"{width}x{height}-{x}+{y}")
@@ -486,10 +515,9 @@ class TextEditorBase(TextEditor):
         self.fcolorbutton.grid(row=3, column=0, sticky="w", pady=3, padx=2)
         self.bcolorbutton = tk.Button(self.frame, text="Paper color", command=self.__color_bchanger)
         self.bcolorbutton.grid(row=3, column=1, sticky="w", pady=3)
-        self.frame.grid(row=0, column=0, sticky="w")
+        self.frame.grid(row=1, column=0)
 
         self.__ts_esw()
-        self.fw.protocol("WM_DELETE_WINDOW", self.__fwonclosing)
         self.fw.mainloop()
 
     def __fwonclosing(self):
@@ -600,6 +628,7 @@ class TextEditorBase(TextEditor):
             self.l1.config(bg=defsyswhite, fg=black)
             self.l2.config(bg=defsyswhite, fg=black)
             self.l3.config(bg=defsyswhite, fg=black)
+            self.eswtitle.config(bg=defsyswhite,fg=black,abg=highlightgrey,afg=black)
         elif self.theme == 1:
             white = "white"
             darkgrey = "#2B2B2B"
@@ -621,6 +650,7 @@ class TextEditorBase(TextEditor):
             self.l1.config(bg=darkgrey, fg=white)
             self.l2.config(bg=darkgrey, fg=white)
             self.l3.config(bg=darkgrey, fg=white)
+            self.eswtitle.config(bg=darkgrey, fg=white, abg=lightgrey, afg=white)
 
         elif self.theme == 2:
             white = "#FFFFFF"
@@ -642,5 +672,125 @@ class TextEditorBase(TextEditor):
             self.l1.config(bg=black, fg=white)
             self.l2.config(bg=black, fg=white)
             self.l3.config(bg=black, fg=white)
+            self.eswtitle.config(bg=black, fg=white, abg=green, afg=white)
 
 
+# Custom Title Bar
+class Titlebar:
+    def __init__(self,master,icon,*,maximize=True,minimze=True,onhold=True,closef=None):
+        self.master = master
+        self.max = maximize
+        self.mini = minimze
+        self.onhold = onhold
+        self.closef = closef
+        self.__ovri = False
+        self.title_bar = tk.Frame(master,bd=0,relief="flat")
+        # self.title_bar.grid(row=0, column=0, sticky="nsew")
+        self.title_bar.bind("<ButtonPress-1>", self.__start_move)
+        self.title_bar.bind("<ButtonRelease-1>", self.__stop_move)
+        self.title_bar.bind("<B1-Motion>",self.__move_window)
+        self.title_bar.bind("<Map>",self.__screen_appear)
+        self.master.bind("<Button-2>",self.__show_overrides)
+
+        self.appicon = tk.Label(self.title_bar,image=icon)
+        self.appicon.pack(side="left",anchor="w")
+
+        self.close = tk.Button(self.title_bar, text="✕", relief="flat", height=1, width=4, font="consolas", bd=1,
+                               command=self.closef if self.closef != None else self.master.destroy, activebackground="#f57e76", activeforeground="white")
+        self.close.pack(anchor="e", side="right")
+
+        if self.max:
+            self.maxd = tk.Button(self.title_bar, text="🗖", relief="flat", height=1, width=4, font="consolas", bd=1,
+                                  command=self.__maxd, activebackground="grey")
+            self.maxd.pack(anchor="e", side="right")
+            self.__maxdstate = None
+
+        if self.mini:
+            self.min = tk.Button(self.title_bar, text="―", relief="flat", height=1, width=4, font="consolas",
+                                 comman=self.__min, bd=1, activebackground="grey")
+            self.min.pack(anchor="e", side="right")
+
+        self.title_label = tk.Label(self.title_bar,text=app_name)
+        self.title_label.pack(side="left",anchor="w")
+
+
+    def set_title(self,text):
+        self.title_label.config(text=text)
+
+    def grid(self,*args,**kwargs):
+        self.title_bar.grid(*args,**kwargs)
+
+    def pack(self,*args,**kwargs):
+        self.title_bar.pack(*args,**kwargs)
+
+    def place(self, *args, **kwargs):
+        self.title_bar.place(*args,**kwargs)
+
+    def __start_move(self, event):
+        self.x = event.x
+        self.y = event.y
+        if self.onhold:
+            self.master.attributes("-alpha", 0.75)
+
+    def __stop_move(self, event):
+        self.x = None
+        self.y = None
+        if self.onhold:
+            self.master.attributes("-alpha", 1.0)
+
+    def __show_overrides(self,_):
+        if not self.__ovri:
+            self.master.overrideredirect(0)
+            self.master.deiconify()
+            self.title_bar.grid_forget()
+            self.__ovri = True
+        else:
+            self.master.overrideredirect(1)
+            self.title_bar.grid(row=0,column=0,sticky="nsew")
+            self.__ovri = False
+
+
+    def __move_window(self,event):
+        deltax = event.x - self.x
+        deltay = event.y - self.y
+        x = self.master.winfo_x() + deltax
+        y = self.master.winfo_y() + deltay
+        self.master.geometry(f"+{x}+{y}")
+
+
+    def __maxd(self):
+        if self.__maxdstate == None or not self.__maxdstate:
+            self.px, self.py = self.master.winfo_x(), self.master.winfo_y()
+            self.pw, self.ph = self.master.winfo_width(),self.master.winfo_height()
+            w, h = self.master.winfo_screenwidth(), self.master.winfo_screenheight()
+            self.master.geometry("%dx%d+0+0" % (w,h))
+            self.maxd.config(text="🗗")
+            self.__maxdstate = True
+        else:
+            self.master.geometry(f"{self.pw}x{self.ph}+{self.px}+{self.py}")
+            self.maxd.config(text="🗖")
+            self.__maxdstate = False
+
+    def __min(self):
+        self.master.overrideredirect(0)
+        self.master.iconify()
+
+    def __screen_appear(self,_):
+        # self.master.overrideredirect(1)
+        pass
+
+    def config(self,bg,fg,abg,afg):
+        self.title_bar.config(bg=bg)
+        self.appicon.config(bg=bg, fg=fg, activebackground=abg, activeforeground=afg)
+        self.close.config(bg=bg, fg=fg, activebackground=abg, activeforeground=afg)
+        self.title_label.config(bg=bg, fg=fg, activebackground=abg, activeforeground=afg)
+        self.close.bind("<Enter>", lambda _: self.close.config(bg="red", fg="white"))
+        self.close.bind("<Leave>", lambda _: self.close.config(bg=bg, fg=fg))
+        if self.max:
+            self.maxd.config(bg=bg, fg=fg, activebackground=abg, activeforeground=afg)
+            self.min.config(bg=bg, fg=fg, activebackground=abg, activeforeground=afg)
+            self.maxd.bind("<Enter>", lambda _: self.maxd.config(bg="grey"))
+            self.maxd.bind("<Leave>", lambda _: self.maxd.config(bg=bg))
+        if self.mini:
+            self.min.bind("<Enter>", lambda _: self.min.config(bg="grey"))
+            self.min.bind("<Leave>", lambda _: self.min.config(bg=bg))
