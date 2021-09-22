@@ -3,8 +3,18 @@ from PIL import ImageTk
 from tkinter import colorchooser, filedialog, messagebox, font
 import tkinter as tk
 from os.path import exists, split, splitext
-from win32print import GetDefaultPrinter
-from win32api import ShellExecute
+import platform
+if platform.system() == 'Linux':
+    try:
+        import cups
+    except:
+        pass
+elif platform.system() == 'Windows':
+    try:
+        from win32print import GetDefaultPrinter
+        from win32api import ShellExecute
+    except:
+        pass
 from pickle import dump, load
 from time import sleep
 import webbrowser
@@ -34,10 +44,12 @@ class TextEditorBase(SafGinText):
         self.__syntaxhighlight = False
 
     def texteditorbase(self):
-
+        img = Image.open('media_file/sgtexteditor_iconphoto.png')
+        img = img.resize((18, 18), Image.ANTIALIAS)
+        self.img = ImageTk.PhotoImage(img)
         self.__startup_loader()
         self.__window_geometry()
-        self.window.iconbitmap("media_file/sgtexteditor_appicon.ico")
+        self.window.iconphoto(True,self.img)
         self.window.grid_rowconfigure(0, weight=1)
         self.window.grid_columnconfigure(0, weight=1)
 
@@ -264,6 +276,13 @@ class TextEditorBase(SafGinText):
         self.window.bind("<Control-minus>",
                          lambda _: self.__font_changer(self.font_size.set(str(int(self.font_size.get()) - 5))) if (
                                  int(self.font_size.get()) > 5) else self.font_size.set(5))  # ctr + minus
+
+        self.window.bind("<Control-KP_Add>",
+                         lambda _: self.__font_changer(self.font_size.set(str(int(self.font_size.get()) + 5))) if (
+                                 int(self.font_size.get()) < 120) else self.font_size.set(120))  # ctr + plus
+        self.window.bind("<Control-KP_Subtract>",
+                         lambda _: self.__font_changer(self.font_size.set(str(int(self.font_size.get()) - 5))) if (
+                                 int(self.font_size.get()) > 5) else self.font_size.set(5))  # ctr + minus
         # To Save
         self.window.bind("<Control-S>", lambda _: self.__fsave())  # ctr + S
         self.window.bind("<Control-s>", lambda _: self.__fsave())  # ctr + s
@@ -310,7 +329,7 @@ class TextEditorBase(SafGinText):
             ("text file", "*.txt"), ("all files", "*.*"), ("Python File", "*.py"), ("HTML File", "*.html")))
 
         if exists(opath):
-            with open(opath, 'r') as f:
+            with open(opath, 'r', encoding="utf8",errors="ignore") as f:
                 self.__delete_all()
                 self.text.insert(1.0, f.read()[:-1])
             self.window.title(f"{(split(opath)[1])} - {app_name}")
@@ -323,7 +342,7 @@ class TextEditorBase(SafGinText):
 
     def __startupopen(self):
         if exists(self.path):
-            with open(self.path, 'rt') as f:
+            with open(self.path, 'rt', encoding="utf8") as f:
                 self.__delete_all()
                 self.text.insert(1.0, f.read()[:-1])
             self.window.title(f"{(split(self.path)[1])} - {app_name}")
@@ -363,20 +382,33 @@ class TextEditorBase(SafGinText):
             self.__fsave_as()
 
     def __print_file(self):
-        printer = GetDefaultPrinter()
-        if printer:
-            self.statusL_text.set(printer)
-            ask = messagebox.askokcancel(title="Print", message=f"Click ok to print this file \n{self.path} ")
-            if ask and exists(self.path):
-                ShellExecute(0, "print", self.path, None, ".", 0)
+        if platform.system() == 'Windows':
+            printer = GetDefaultPrinter()
+            if printer:
+                self.statusL_text.set(printer)
+                ask = messagebox.askokcancel(title="Print", message=f"Click ok to print this file \n{self.path} ")
+                if ask and exists(self.path):
+                    ShellExecute(0, "print", self.path, None, ".", 0)
             else:
-                pass
-        else:
-            self.statusL_text.set("No Printer Available")
-            messagebox.showwarning(title=f"{app_name}", message="Cannot Detect a printer:"
-                                                                "\nBe sure that your printer is connected properly and use "
-                                                                "Control Panel to verify that the printer is configured properly.")
-        self.statusL_text.set(f"{self.path}")
+                self.statusL_text.set("No Printer Available")
+                messagebox.showwarning(title=f"{app_name}", message="Cannot Detect a printer:"
+                                                                    "\nBe sure that your printer is connected properly and use "
+                                                                    "Control Panel to verify that the printer is configured properly.")
+            self.statusL_text.set(f"{self.path}")
+
+        elif platform.system() == 'Linux':
+            try:
+                conn = cups.Connection()
+                printer = conn.getPrinters()
+                printer = printer.keys()[0]
+                if printer:
+                    self.statusL_text.set(printer)
+                    ask = messagebox.askokcancel(title="Print", message=f"Click ok to print this file \n{self.path} ")
+                    if ask and exists(self.path):
+                            conn.printFile(printer, self.path, "print", options={'media': '216x280mm'})
+            except:
+                messagebox.showerror(title="Print Error",message="failed to connect to server, Please make sure your device is connected to the printer!")
+
 
     def __cut(self):
         self.text.event_generate("<<Cut>>")
@@ -477,9 +509,6 @@ class TextEditorBase(SafGinText):
                             )
 
     def __es_window(self):
-        img = Image.open('media_file\sgtexteditor_iconphoto.png')
-        img = img.resize((18, 18), Image.ANTIALIAS)
-        img = ImageTk.PhotoImage(img)
         self.tripemp_list = ["Bold", "Italics", "Underline"]
         self.filemenu.entryconfig(5, state="disabled")
         self.fw = tk.Toplevel()
@@ -487,7 +516,7 @@ class TextEditorBase(SafGinText):
         self.fw.attributes("-alpha", 0.75)
         self.fw.grid_rowconfigure(0,weight=1)
         self.fw.grid_columnconfigure(0, weight=1)
-        self.eswtitle = Titlebar(self.fw,img,maximize=False,minimze=False,onhold=False,closef=self.__fwonclosing)
+        self.eswtitle = Titlebar(self.fw,self.img,maximize=False,minimze=False,onhold=False,closef=self.__fwonclosing)
         self.eswtitle.grid(row=0,column=0,sticky="we")
         self.eswtitle.set_title("Editor Settings")
         self.fw.attributes('-topmost', True)
@@ -696,7 +725,7 @@ class Titlebar:
         self.appicon.pack(side="left",anchor="w")
 
         self.close = tk.Button(self.title_bar, text="✕", relief="flat", height=1, width=4, font="consolas", bd=1,
-                               command=self.closef if self.closef != None else self.master.destroy, activebackground="#f57e76", activeforeground="white")
+                               command=self.closef if self.closef != None else self.master.destroy)
         self.close.pack(anchor="e", side="right")
 
         if self.max:
@@ -782,7 +811,7 @@ class Titlebar:
     def config(self,bg,fg,abg,afg):
         self.title_bar.config(bg=bg)
         self.appicon.config(bg=bg, fg=fg, activebackground=abg, activeforeground=afg)
-        self.close.config(bg=bg, fg=fg, activebackground=abg, activeforeground=afg)
+        self.close.config(bg=bg, fg=fg, activebackground="red", activeforeground="white")
         self.title_label.config(bg=bg, fg=fg, activebackground=abg, activeforeground=afg)
         self.close.bind("<Enter>", lambda _: self.close.config(bg="red", fg="white"))
         self.close.bind("<Leave>", lambda _: self.close.config(bg=bg, fg=fg))
