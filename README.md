@@ -4,7 +4,7 @@ SafGin is a python GUI text editor application.
 
 ## Installation
 
-Download the source code zip from [github](https://github.com/SatzGOD/safgin-text) and extract and put it in any directory.
+Download the source code zip from [github](https://github.com/SatzGOD/safgin-text) and extract, and put it in any directory.
 
 ## Usage
 
