@@ -501,7 +501,7 @@ class TextEditorBase(SafGinText):
                             "\ninstagram: @satz_._")
     def __version_info(self):
         messagebox.showinfo(title="Version Info", message=f"\nAbout This Version:-"
-                                                     f"\n{app_name} v2.3.4 "
+                                                     f"\n{app_name} v2.3.6 "
                                                      f"\nWhat's New?\n"
                                                      f"Click StatusBar to Transparent background and Added new F11 to full screen feature."
                                                      f"\nMinor Changes:\n"
