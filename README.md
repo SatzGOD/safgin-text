@@ -31,7 +31,7 @@ Convert To exe:
 
 In Terminal
 ```bash
-$ pyinstaller -F -w -i sgtextedito_appicon.ico safgintext.py
+$ pyinstaller -F -w -i sgtexteditor_appicon.ico safgintext.py
 ```
 
 or use [auto-py-to-exe](https://github.com/brentvollebregt/auto-py-to-exe).
