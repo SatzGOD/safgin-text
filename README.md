@@ -22,11 +22,6 @@ $ python3 safgintext.py
 ```
 #
 
-Direct:
-
-double tap `safgintext.py` To run!
-#
-
 Convert To exe:
 
 In Terminal
