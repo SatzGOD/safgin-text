@@ -620,7 +620,7 @@ class TextEditorBase(SafGinText):
             black = "#000000"
             green = "#00BF00"
             relief = "flat"
-            font, size = "Ubuntu Mono", "10"
+            font, size = "Consolas", "10"
             self.window.config(bg=black)
             self.bottomframe.config(bg=black)
             self.text.config(fg=white, bg=black, insertbackground=white)
