@@ -105,7 +105,7 @@ class TextEditorBase(SafGinText):
         self.filemenu.add_separator()
         self.filemenu.add_command(label='Print 🖶', command=self.__print_file, accelerator="Ctrl+P")
         self.filemenu.add_separator()
-        self.filemenu.add_command(label="Exit", command=self.__on_closing)
+        self.filemenu.add_command(label="Exit", command=self.__on_closing, accelerator="Ctrl+Q")
 
         # Edit Menu
         self.menubar.add_cascade(label="Edit", menu=self.editmenu)
@@ -300,6 +300,10 @@ class TextEditorBase(SafGinText):
         # To Print
         self.window.bind("<Control-P>", lambda _: self.__print_file())  # ctr + P
         self.window.bind("<Control-p>", lambda _: self.__print_file())  # ctr + p
+
+        # to quit
+        self.window.bind("<Control-Q>", lambda _: self.__on_closing())
+        self.window.bind("<Control-q>", lambda _: self.__on_closing())
 
         self.bottomframe.bind("<ButtonPress-1>",lambda _: self.window.attributes("-alpha", 0.4))
         self.bottomframe.bind("<ButtonRelease-1>", lambda _: self.window.attributes("-alpha", 1.0))
