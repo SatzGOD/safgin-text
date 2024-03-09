@@ -1,6 +1,6 @@
 # SafGin Text 
 
-SafGin is a python GUI text editor application.
+A Simple Text Editor Application with Python and Tkinter GUI
 
 ## Installation
 
