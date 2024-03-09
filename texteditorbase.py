@@ -45,7 +45,7 @@ class TextEditorBase(SafGinText):
 
     def texteditorbase(self):
         img = Image.open('media_file/sgtexteditor_iconphoto.png')
-        img = img.resize((18, 18), Image.ANTIALIAS)
+        img = img.resize((18, 18), Image.LANCZOS)
         self.img = ImageTk.PhotoImage(img)
         self.__startup_loader()
         self.__window_geometry()
@@ -192,7 +192,7 @@ class TextEditorBase(SafGinText):
         else:
             if not self.__syntaxhighlight:
                 self.cdg = ColorDelegator()
-                self.cdg.prog = re.compile(r'\b(?P<MYGROUP>tkinter)\b|' + make_pat(), re.S)
+                self.cdg.prog = re.compile(r'\b(?P<MYGROUP>tkinter)\b|' + make_pat().pattern, re.S)
                 self.cdg.idprog = re.compile(r'\s+(\w+)', re.S)
                 self.cdg.tagdefs['MYGROUP'] = {'foreground': ''}
                 self.cdg.tagdefs['COMMENT'] = {'foreground': 'grey'}
@@ -526,7 +526,7 @@ class TextEditorBase(SafGinText):
         self.fw.attributes('-topmost', True)
         self.fw.resizable(False, False)
         self.fw.title("Editor Settings")
-        width, height = 300, 160
+        width, height = 300, 200
         x = int((self.window.winfo_screenwidth() / 2) - (width / 2))
         y = int((self.window.winfo_screenheight() / 2) - (height / 2))
         self.fw.geometry(f"{width}x{height}-{x}+{y}")
@@ -548,7 +548,11 @@ class TextEditorBase(SafGinText):
         self.fcolorbutton.grid(row=3, column=0, sticky="w", pady=3, padx=2)
         self.bcolorbutton = tk.Button(self.frame, text="Paper color", command=self.__color_bchanger)
         self.bcolorbutton.grid(row=3, column=1, sticky="w", pady=3)
+
+        #self.exit_b = tk.Button(self.frame, text="Exit", command=self.__fwonclosing)
+        #self.exit_b.grid(row=4, columnspan=2, sticky="n", pady=1,padx=1)
         self.frame.grid(row=1, column=0)
+
 
         self.__ts_esw()
         self.fw.mainloop()
