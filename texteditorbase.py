@@ -132,10 +132,10 @@ class TextEditorBase(SafGinText):
                                   command=self.__version_info)
         self.helpmenu.add_separator()
         self.helpmenu.add_command(label="Repository",
-                                  command=lambda: webbrowser.open("https://github.com/SatzGOD/safgin-text"))
+                                  command=lambda: webbrowser.open("https://github.com/nonkloq/safgin-text"))
         self.helpmenu.add_separator()
         self.helpmenu.add_command(label="Report a problem ⚠",
-                                  command=lambda: webbrowser.open("https://github.com/SatzGOD/safgin-text/issues/new"))
+                                  command=lambda: webbrowser.open("https://github.com/nonkloq/safgin-text/issues/new"))
 
         self.__window_keybinds()
 
@@ -501,8 +501,8 @@ class TextEditorBase(SafGinText):
 
     def __about(self):
         messagebox.showinfo(f"About {app_name}",
-                            "A python text editor application by Satz!\nSource Code at SatzGOD github or Click `Repository` in the Help Menu.\n"
-                            "\ninstagram: @satz_._")
+                            "A python text editor application in python using Tkinter!\nSource Code at nonkloq github or Click `Repository` in the Help Menu.\n"
+                            " ")
     def __version_info(self):
         messagebox.showinfo(title="Version Info", message=f"\nAbout This Version:-"
                                                      f"\n{app_name} v2.3.6 "
